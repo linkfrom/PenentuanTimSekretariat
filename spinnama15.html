@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>PENENTUAN PESERTA BALAP KARUNG TIM SEKRETARIAT</title>
+<style>
+  :root{
+    --bg:#0a2e4e;         /* Dark Azure */
+    --card:#133b63;       /* Darker azure card */
+    --text:#d0e6f6;       /* light text */
+    --accent:#1f77d0;     /* azure accent */
+    --accent-2:#00a2ff;   /* hover */
+    --headline:#00cfff;   /* cyan headline */
+  }
+  *{box-sizing:border-box}
+  body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  h1 {
+    text-align: center;
+    color: var(--headline);
+    margin-bottom: 20px;
+    letter-spacing:.5px;
+  }
+  h2 {
+    margin-bottom: 5px;
+    color: #fff;
+  }
+  .container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .box {
+    flex: 1 1 360px;
+    background: var(--card);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 207, 255, 0.18);
+  }
+  textarea {
+    width: 100%;
+    height: 150px;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid var(--accent);
+    resize: vertical;
+    background: var(--bg);
+    color: var(--text);
+  }
+  button {
+    margin-top: 12px;
+    padding: 10px 16px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .25s, transform .12s;
+  }
+  button:hover { background: var(--accent-2); }
+  button:active { transform: translateY(1px); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    background: var(--card);
+    color: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th, td {
+    border: 1px solid var(--accent);
+    padding: 8px;
+    text-align: center;
+  }
+  th {
+    background: var(--accent);
+    color: white;
+  }
+  .muted{ opacity:.7 }
+</style>
+</head>
+<body>
+
+<h1>PENENTUAN PESERTA BALAP KARUNG TIM SEKRETARIAT</h1>
+
+<div class="container">
+  <!-- Peserta Perempuan -->
+  <div class="box">
+    <h2>Peserta Perempuan</h2>
+    <textarea id="femaleList">Ani_HO
+Dewi_HO
+Friska_MKKS
+Rani_KLIP
+Ruth_USDM
+Eka_USDM
+Amira_INSP</textarea>
+    <button id="btnFemale" onclick="pickRandom('female')">🎯 Random Picker</button>
+    <table id="femaleResultTable">
+      <thead>
+        <tr><th>Tim</th><th>Nama</th></tr>
+      </thead>
+      <tbody>
+        <tr class="muted"><td>SEK_A</td><td></td></tr>
+        <tr class="muted"><td>SEK_B</td><td></td></tr>
+        <tr class="muted"><td>SEK_C</td><td></td></tr>
+        <tr class="muted"><td>SEK_D</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Peserta Laki-Laki -->
+  <div class="box">
+    <h2>Peserta Laki-Laki</h2>
+    <textarea id="maleList">Andri_HO
+Dwi_HO
+Frendy_MKKS
+Ryan_KLIP
+Ruvai_USDM
+Edi_USDM
+Abdul_INSP</textarea>
+    <button id="btnMale" onclick="pickRandomMale()">🎯 Random Picker</button>
+    <table id="maleResultTable">
+      <thead>
+        <tr><th>Tim</th><th>Nama</th></tr>
+      </thead>
+      <tbody>
+        <tr class="muted"><td>SEK_A</td><td></td></tr>
+        <tr class="muted"><td>SEK_B</td><td></td></tr>
+        <tr class="muted"><td>SEK_C</td><td></td></tr>
+        <tr class="muted"><td>SEK_D</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Tim Sekretariat -->
+<div class="box" style="margin-top: 20px;">
+  <h2>Tim Sekretariat</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Tim</th>
+        <th>Peserta Perempuan</th>
+        <th>Peserta Laki-Laki</th>
+      </tr>
+    </thead>
+    <tbody id="teamTableBody">
+      <tr><td>SEK_A</td><td></td><td></td></tr>
+      <tr><td>SEK_B</td><td></td><td></td></tr>
+      <tr><td>SEK_C</td><td></td><td></td></tr>
+      <tr><td>SEK_D</td><td></td><td></td></tr>
+    </tbody>
+  </table>
+  <button onclick="resetAll()">🔄 RESET</button>
+</div>
+
+<!-- Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+<script>
+/* ===== Util ===== */
+const TIM_LABELS = ['SEK_A','SEK_B','SEK_C','SEK_D'];
+
+function parseList(text) {
+  return text.split('\n').map(x => x.trim()).filter(x => x);
+}
+function getUnit(name) {
+  return (name.split('_')[1] || '').trim();
+}
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+/* Typing effect with callback after finish */
+function typingEffect(tableBody, picked, onDone){
+  // prepare 4 empty rows first
+  tableBody.innerHTML = '';
+  for(let i=0;i<4;i++){
+    const tr = document.createElement('tr');
+    if(i>=picked.length) tr.classList.add('muted');
+    const tdTim = document.createElement('td');
+    const tdNama = document.createElement('td');
+    tdTim.textContent = TIM_LABELS[i];
+    tdNama.textContent = '';
+    tr.appendChild(tdTim); tr.appendChild(tdNama);
+    tableBody.appendChild(tr);
+  }
+
+  let i=0;
+  function typeNext(){
+    if(i<picked.length){
+      const row = tableBody.rows[i];
+      row.classList.remove('muted');
+      const full = picked[i];
+      let j=0;
+      function typeChar(){
+        if(j<=full.length){
+          row.cells[1].textContent = full.slice(0,j);
+          j++;
+          setTimeout(typeChar, 20); // speed per char
+        }else{
+          i++;
+          setTimeout(typeNext, 150); // delay before next row
+        }
+      }
+      typeChar();
+    }else{
+      // finished all rows
+      if(typeof onDone === 'function') onDone();
+    }
+  }
+  typeNext();
+}
+
+/* Confetti */
+function triggerConfetti() {
+  confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+}
+
+/* Pick logic ensuring distinct units within a section */
+function pickDistinctByUnit(list, quota=4){
+  const pool = shuffle([...list]);
+  const picked = [];
+  const used = new Set();
+  for(const item of pool){
+    const unit = getUnit(item);
+    if(!unit) continue;
+    if(!used.has(unit)){
+      picked.push(item);
+      used.add(unit);
+      if(picked.length===quota) break;
+    }
+  }
+  return picked;
+}
+
+/* ===== Main Actions ===== */
+function pickRandom(gender){
+  const list = parseList(document.getElementById(gender+'List').value);
+  const picked = pickDistinctByUnit(list, 4);
+
+  // typing effect to its table, then update team table after typing finished
+  const tbody = document.getElementById(gender+'ResultTable').querySelector('tbody');
+  triggerConfetti();
+  typingEffect(tbody, picked, () => {
+    updateTeamTable(); // Section 3 terisi setelah efek menulis selesai
+  });
+}
+
+function pickRandomMale(){
+  // Ensure perempuan sudah diundi (4 baris ada isi)
+  const femalePicked = Array.from(document.querySelectorAll('#femaleResultTable tbody tr td:nth-child(2)'))
+                      .map(td => td.textContent).filter(Boolean);
+  if(femalePicked.length < 4){
+    alert('Silakan undi peserta perempuan terlebih dahulu!');
+    return;
+  }
+
+  const femaleList = parseList(document.getElementById('femaleList').value);
+  const maleList   = parseList(document.getElementById('maleList').value);
+
+  const allUnits = new Set([...femaleList, ...maleList].map(n => getUnit(n)));
+
+  let attempt = 0, picked = [];
+  while(attempt < 100){
+    attempt++;
+    const tryPick = pickDistinctByUnit(maleList, 4);
+    const combinedUnits = new Set([...femalePicked, ...tryPick].map(n => getUnit(n)));
+    if(combinedUnits.size === allUnits.size){
+      picked = tryPick;
+      break;
+    }
+  }
+  if(picked.length !== 4){
+    alert('Tidak menemukan kombinasi yang memenuhi aturan setelah 100 percobaan.');
+    return;
+  }
+
+  const tbody = document.getElementById('maleResultTable').querySelector('tbody');
+  triggerConfetti();
+  typingEffect(tbody, picked, () => {
+    updateTeamTable(); // Section 3 terisi setelah efek menulis selesai
+  });
+}
+
+/* Update Section 3 from current tables */
+function updateTeamTable(){
+  const femalePicked = Array.from(document.querySelectorAll('#femaleResultTable tbody tr td:nth-child(2)'))
+                      .map(td => td.textContent);
+  const malePicked = Array.from(document.querySelectorAll('#maleResultTable tbody tr td:nth-child(2)'))
+                      .map(td => td.textContent);
+
+  const rows = document.getElementById('teamTableBody').rows;
+  for(let i=0;i<4;i++){
+    rows[i].cells[1].textContent = femalePicked[i] || '';
+    rows[i].cells[2].textContent = malePicked[i] || '';
+  }
+}
+
+/* RESET */
+function resetAll(){
+  // Clear result tables (keep Tim labels)
+  ['female','male'].forEach(g=>{
+    const tbody = document.getElementById(g+'ResultTable').querySelector('tbody');
+    tbody.innerHTML = '';
+    for(let i=0;i<4;i++){
+      const tr = document.createElement('tr');
+      tr.classList.add('muted');
+      tr.innerHTML = `<td>${TIM_LABELS[i]}</td><td></td>`;
+      tbody.appendChild(tr);
+    }
+  });
+  // Clear section 3
+  const rows = document.getElementById('teamTableBody').rows;
+  for(let i=0;i<4;i++){
+    rows[i].cells[1].textContent = '';
+    rows[i].cells[2].textContent = '';
+  }
+}
+</script>
+
+</body>
+</html>
